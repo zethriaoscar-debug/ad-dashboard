@@ -424,9 +424,10 @@ export default function App() {
       const spend    = n(g(r, 'spend'))
       const results  = n(g(r, 'results'))
       const clicks   = n(g(r, 'linkClicks'))
+      const impr     = n(g(r, 'impressions'))
       const lpv      = n(g(r, 'lpv'))
       const cpm      = n(g(r, 'cpm'))
-      const ctr      = n(g(r, 'ctr'))
+      const ctr      = impr > 0 ? (clicks / impr) * 100 : 0
       const cpc      = n(g(r, 'cpc')) || (clicks > 0 ? spend / clicks : 0)
       const freq     = n(g(r, 'frequency'))
       const donations= n(g(r, 'donations'))
@@ -1017,6 +1018,8 @@ ${adRows}`
                       const objCfg = OBJ_CFG[rowObj] || OBJ_CFG.leads
                       const sp  = n(gr(r, 'spend'))
                       const res = n(gr(r, 'results'))
+                      const impr = n(gr(r, 'impressions'))
+                      const clicks = n(gr(r, 'linkClicks'))
                       const don = n(gr(r, 'donations'))
                       const pur = n(gr(r, 'purchases'))
                       const mainConv = don || pur || res
@@ -1039,7 +1042,7 @@ ${adRows}`
                           <td style={{ ...S.td, textAlign: 'center', fontWeight: 500 }}>{mainConv || '—'}</td>
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mainConv > 0 ? mc('cpa', cpa) : 'var(--muted)' }}>{costDisplay}</td>
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('cpm', n(gr(r,'cpm'))) }}>{idr(n(gr(r,'cpm')))}</td>
-                          <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('ctr', n(gr(r,'ctr'))) }}>{pct(n(gr(r,'ctr')))}</td>
+                          <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('ctr', impr > 0 ? (clicks/impr)*100 : 0) }}>{pct(impr > 0 ? (clicks/impr)*100 : 0)}</td>
                         </tr>
                       )
                     })}

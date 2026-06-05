@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ad Performance Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --bg: #0f0f13;
+        --card: #17171c;
+        --card-hover: #1d1d24;
+        --border: #25252d;
+        --text: #e8e6f0;
+        --muted: #6b6980;
+        --tertiary: #45445a;
+        --accent: #8b7cf8;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --success-bg: rgba(52,211,153,0.08);
+        --warning-bg: rgba(251,191,36,0.08);
+        --danger-bg: rgba(248,113,113,0.08);
+        --info-bg: rgba(139,124,248,0.08);
+        --font-mono: 'IBM Plex Mono', monospace;
+        --font-sans: 'DM Sans', sans-serif;
+        --radius-sm: 6px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      input, button {
+        font-family: var(--font-sans);
+        font-size: 13px;
+      }
+      button {
+        cursor: pointer;
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        transition: background 0.15s;
+      }
+      button:hover:not(:disabled) { background: var(--card-hover); }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      input[type="text"], input[type="password"], input[type="number"] {
+        background: var(--card-hover);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 7px 10px;
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      input:focus { border-color: var(--accent); }
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: var(--bg); }
+      ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -994,40 +994,6 @@ ${adRows}`
                   </tbody>
                   <tfoot>
                     <tr style={{ background: 'var(--card-hover)', borderTop: '2px solid var(--border)' }}>
-                      <td colSpan={4} style={{ ...S.td, fontWeight: 700, color: 'var(--text)' }}>TOTAL KESELURUHAN</td>
-                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>{idr(data.totals.spend)}</td>
-                      <td style={{ ...S.td, fontWeight: 700, textAlign: 'center' }}>
-                        {objective === 'donation' ? data.totals.donations :
-                         objective === 'sales'    ? data.totals.purchases :
-                         objective === 'traffic'  ? data.totals.lpv :
-                         objective === 'ctwa'     ? data.totals.conversations :
-                         objective === 'awareness'? data.totals.reach :
-                         data.totals.results || '—'}
-                      </td>
-                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc(objective === 'traffic' ? 'cpl' : (objective === 'donation' || objective === 'sales') ? 'cpa' : 'cpl', objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) }}>
-                        {(objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) > 0 ? idr(objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) : '—'}
-                      </td>
-                      {(objective === 'donation' || isFullFunnel) && (
-                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('roas', data.totals.roas) }}>
-                          {data.totals.roas > 0 ? `${data.totals.roas.toFixed(2)}x` : '—'}
-                        </td>
-                      )}
-                      {(objective === 'donation' || isFullFunnel) && (
-                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>
-                          {data.totals.donationValue > 0 ? idr(data.totals.donationValue) : '—'}
-                        </td>
-                      )}
-                      {(objective === 'donation' || isFullFunnel) && (
-                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>
-                          {data.totals.donations > 0 ? idr(data.totals.donationValue / data.totals.donations) : '—'}
-                        </td>
-                      )}
-                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('cpm', data.totals.cpm) }}>{idr(data.totals.cpm)}</td>
-                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('ctr', data.totals.ctr) }}>{pct(data.totals.ctr)}</td>
-                    </tr>
-                  </tfoot>
-                  <tfoot>
-                    <tr style={{ background: 'var(--card-hover)', borderTop: '2px solid var(--border)' }}>
                       <td colSpan={isFullFunnel ? 3 : 2} style={{ ...S.td, fontWeight: 700, color: 'var(--text)' }}>TOTAL KESELURUHAN</td>
                       <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>{idr(data.totals.spend)}</td>
                       <td style={{ ...S.td, fontWeight: 700, textAlign: 'center' }}>
@@ -1213,6 +1179,40 @@ ${adRows}`
                       )
                     })}
                   </tbody>
+                  <tfoot>
+                    <tr style={{ background: 'var(--card-hover)', borderTop: '2px solid var(--border)' }}>
+                      <td colSpan={4} style={{ ...S.td, fontWeight: 700, color: 'var(--text)' }}>TOTAL KESELURUHAN</td>
+                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>{idr(data.totals.spend)}</td>
+                      <td style={{ ...S.td, fontWeight: 700, textAlign: 'center' }}>
+                        {objective === 'donation' ? data.totals.donations :
+                         objective === 'sales'    ? data.totals.purchases :
+                         objective === 'traffic'  ? data.totals.lpv :
+                         objective === 'ctwa'     ? data.totals.conversations :
+                         objective === 'awareness'? data.totals.reach :
+                         data.totals.results || '—'}
+                      </td>
+                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc(objective === 'traffic' ? 'cpl' : (objective === 'donation' || objective === 'sales') ? 'cpa' : 'cpl', objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) }}>
+                        {(objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) > 0 ? idr(objective === 'traffic' ? data.totals.cpc : (objective === 'donation' || objective === 'sales') ? data.totals.cpa : objective === 'ctwa' ? data.totals.costPerChat : data.totals.cpl) : '—'}
+                      </td>
+                      {(objective === 'donation' || isFullFunnel) && (
+                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('roas', data.totals.roas) }}>
+                          {data.totals.roas > 0 ? `${data.totals.roas.toFixed(2)}x` : '—'}
+                        </td>
+                      )}
+                      {(objective === 'donation' || isFullFunnel) && (
+                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>
+                          {data.totals.donationValue > 0 ? idr(data.totals.donationValue) : '—'}
+                        </td>
+                      )}
+                      {(objective === 'donation' || isFullFunnel) && (
+                        <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700 }}>
+                          {data.totals.donations > 0 ? idr(data.totals.donationValue / data.totals.donations) : '—'}
+                        </td>
+                      )}
+                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('cpm', data.totals.cpm) }}>{idr(data.totals.cpm)}</td>
+                      <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: mc('ctr', data.totals.ctr) }}>{pct(data.totals.ctr)}</td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>

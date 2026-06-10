@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import Papa from 'papaparse'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import * as XLSX from 'xlsx'
 
 // ---------------------------------------------------------------------------
 // Free models available on OpenRouter (fetched 2026-06-03)
@@ -209,7 +210,58 @@ export default function App() {
   const [objective,   setObjective]  = useState('leads')
   const [isFullFunnel,setIsFF]       = useState(false)
   const [thr,         setThr]        = useState(OBJ_DEFAULTS.leads)
+  const [copySuccess, setCopySuccess]= useState(false)
   const fileRef = useRef()
+
+  const handleCopyInsight = () => {
+    if (insight) {
+      navigator.clipboard.writeText(insight)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    }
+  }
+
+  const exportToExcel = () => {
+    if (!data) return
+    const overviewData = [
+      { Metric: 'Total Spend', Value: idr(data.totals.spend) },
+      { Metric: 'Total Hasil', Value: data.totals.results },
+      { Metric: 'CPL', Value: idr(data.totals.cpl) },
+      { Metric: 'CPA', Value: idr(data.totals.cpa) },
+      { Metric: 'CPM', Value: idr(data.totals.cpm) },
+      { Metric: 'CTR', Value: pct(data.totals.ctr) },
+      { Metric: 'ROAS', Value: data.totals.roas > 0 ? `${data.totals.roas.toFixed(2)}x` : '—' },
+      { Metric: 'Nilai Donasi', Value: idr(data.totals.donationValue) },
+      { Metric: 'AOV', Value: idr(data.totals.donations > 0 ? data.totals.donationValue / data.totals.donations : 0) },
+      { Metric: 'Reach', Value: data.totals.reach },
+      { Metric: 'LPV', Value: data.totals.lpv },
+      { Metric: 'Cost per Chat', Value: idr(data.totals.costPerChat) },
+    ]
+    const campaignData = data.campaigns.map(c => {
+      const row = { Campaign: c.name, Objective: c.objective, Status: c.status, Spend: c.spend, Hasil: c.results, 'CPL / CPA': c.cpa > 0 ? c.cpa : c.cpl, CPM: c.cpm, CTR: c.ctr, 'Average Freq': c.avgFreq }
+      if (objective === 'donation' || isFullFunnel) {
+        row['Donasi'] = c.donations; row['Nilai Donasi'] = c.donationValue; row['AOV'] = c.donations > 0 ? c.donationValue / c.donations : 0; row['ROAS'] = c.roas
+      }
+      return row
+    })
+    const cm2 = rawRows.length > 0 ? buildColMap(Object.keys(rawRows[0])) : {}
+    const gr  = (r, col) => gv(r, cm2, COLS[col])
+    const adData = rawRows.map(r => {
+      const impr = n(gr(r, 'impressions')), clicks = n(gr(r, 'linkClicks')), don = n(gr(r, 'donations')), donVal = n(gr(r, 'donationValue')), sp = n(gr(r, 'spend'))
+      const rowObj = detectRowObj(gr(r, 'resultType'))
+      const row = { 'Nama Iklan': gr(r, 'ad'), Campaign: gr(r, 'campaign'), Objective: OBJ_CFG[rowObj]?.label || rowObj, Status: gr(r, 'status'), Spend: sp, Hasil: n(gr(r, 'results')), 'CPL / CPA': (don || n(gr(r,'purchases')) || n(gr(r,'results'))) > 0 ? sp / (don || n(gr(r,'purchases')) || n(gr(r,'results'))) : 0, CPM: n(gr(r, 'cpm')), CTR: impr > 0 ? (clicks/impr)*100 : 0 }
+      if (objective === 'donation' || isFullFunnel) {
+        row['Donasi'] = don; row['Nilai Donasi'] = donVal; row['AOV'] = don > 0 ? donVal / don : 0; row['ROAS'] = donVal > 0 && sp > 0 ? donVal / sp : 0
+      }
+      return row
+    })
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(overviewData), 'Overview')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(campaignData), 'Campaigns')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adData), 'Detail Iklan')
+    XLSX.writeFile(wb, `Laporan-Iklan-${data.dateEnd.replace(/-/g, '')}.xlsx`)
+  }
+
 
   const handleModelChange = id => {
     setModelId(id)
@@ -771,7 +823,13 @@ ${adRows}`
             </select>
           </div>
           {dangerCount > 0 && <span style={S.badge('var(--danger)',  'var(--danger-bg)')} >{dangerCount} masalah</span>}
-          {warningCount > 0 && <span style={S.badge('var(--warning)', 'var(--warning-bg)')}>{warningCount} peringatan</span>}
+                    {warningCount > 0 && <span style={S.badge('var(--warning)', 'var(--warning-bg)')}>{warningCount} peringatan</span>}
+          {data && (
+            <button onClick={exportToExcel} style={{ background: 'var(--card-hover)', border: '1px solid var(--border)' }}>
+              <i className="ti ti-download" style={{ marginRight: 4, fontSize: 13, verticalAlign: '-2px' }} />
+              Export
+            </button>
+          )}
           <button onClick={() => { setData(null); setRawRows([]); setInsight('') }}>
             <i className="ti ti-upload" style={{ marginRight: 4, fontSize: 13, verticalAlign: '-2px' }} />
             Upload baru
@@ -862,7 +920,9 @@ ${adRows}`
                       <th style={S.th}>Spend</th>
                       <th style={S.th}>{OBJ_CFG[objective]?.resultLabel || 'Hasil'}</th>
                       <th style={S.th}>{OBJ_CFG[objective]?.costLabel || 'CPL'}</th>
-                      {(objective === 'donation' || objective === 'sales') && <th style={S.th}>ROAS</th>}
+                      {(objective === 'donation' || objective === 'sales' || isFullFunnel) && <th style={S.th}>ROAS</th>}
+                      {(objective === 'donation' || isFullFunnel) && <th style={S.th}>Nilai Donasi</th>}
+                      {(objective === 'donation' || isFullFunnel) && <th style={S.th}>AOV</th>}
                       <th style={S.th}>CPM</th>
                       <th style={S.th}>CTR</th>
                       {objective !== 'awareness' && objective !== 'traffic' && <th style={S.th}>Freq</th>}
@@ -906,9 +966,19 @@ ${adRows}`
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', color: mc(costMetric, costVal) }}>
                             {costVal > 0 ? idr(costVal) : '—'}
                           </td>
-                          {(objective === 'donation' || objective === 'sales') && (
+                          {(objective === 'donation' || objective === 'sales' || isFullFunnel) && (
                             <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', color: mc('roas', c.roas) }}>
                               {c.roas > 0 ? `${c.roas.toFixed(2)}x` : '—'}
+                            </td>
+                          )}
+                          {(objective === 'donation' || isFullFunnel) && (
+                            <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+                              {c.donationValue > 0 ? idr(c.donationValue) : '—'}
+                            </td>
+                          )}
+                          {(objective === 'donation' || isFullFunnel) && (
+                            <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+                              {c.donations > 0 ? idr(c.donationValue / c.donations) : '—'}
                             </td>
                           )}
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', fontSize: '12px', color: mc('cpm', c.cpm) }}>{idr(c.cpm)}</td>
@@ -1007,7 +1077,13 @@ ${adRows}`
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: 750 }}>
                   <thead>
                     <tr style={{ background: 'var(--card-hover)' }}>
-                      {['Nama iklan','Campaign','Objective','Status','Spend','Hasil','CPL/CPA','CPM','CTR'].map(h => (
+                      {['Nama iklan','Campaign','Objective','Status','Spend','Hasil','CPL/CPA'].map(h => (
+                        <th key={h} style={S.th}>{h}</th>
+                      ))}
+                      {(objective === 'donation' || isFullFunnel) && <th style={S.th}>ROAS</th>}
+                      {(objective === 'donation' || isFullFunnel) && <th style={S.th}>Nilai Donasi</th>}
+                      {(objective === 'donation' || isFullFunnel) && <th style={S.th}>AOV</th>}
+                      {['CPM','CTR'].map(h => (
                         <th key={h} style={S.th}>{h}</th>
                       ))}
                     </tr>
@@ -1025,6 +1101,8 @@ ${adRows}`
                       const mainConv = don || pur || res
                       const cpa = mainConv > 0 ? sp / mainConv : 0
                       const cplCol = n(gr(r, 'cpl_col'))
+                      const donVal = n(gr(r, 'donationValue'))
+                      const roas = donVal > 0 && sp > 0 ? donVal / sp : 0
                       const costDisplay = cpa > 0 ? idr(cpa) : (cplCol > 0 ? idr(cplCol) : '—')
                       return (
                         <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
@@ -1041,6 +1119,21 @@ ${adRows}`
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)' }}>{idr(sp)}</td>
                           <td style={{ ...S.td, textAlign: 'center', fontWeight: 500 }}>{mainConv || '—'}</td>
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mainConv > 0 ? mc('cpa', cpa) : 'var(--muted)' }}>{costDisplay}</td>
+                          {(objective === 'donation' || isFullFunnel) && (
+                            <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('roas', roas) }}>
+                              {roas > 0 ? `${roas.toFixed(2)}x` : '—'}
+                            </td>
+                          )}
+                          {(objective === 'donation' || isFullFunnel) && (
+                            <td style={{ ...S.td, fontFamily: 'var(--font-mono)' }}>
+                              {donVal > 0 ? idr(donVal) : '—'}
+                            </td>
+                          )}
+                          {(objective === 'donation' || isFullFunnel) && (
+                            <td style={{ ...S.td, fontFamily: 'var(--font-mono)' }}>
+                              {don > 0 ? idr(donVal / don) : '—'}
+                            </td>
+                          )}
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('cpm', n(gr(r,'cpm'))) }}>{idr(n(gr(r,'cpm')))}</td>
                           <td style={{ ...S.td, fontFamily: 'var(--font-mono)', color: mc('ctr', impr > 0 ? (clicks/impr)*100 : 0) }}>{pct(impr > 0 ? (clicks/impr)*100 : 0)}</td>
                         </tr>
